@@ -1,6 +1,6 @@
 dir: /etc/puppetlabs/puppet/ssl/ca/requests
 cmd_sign: /opt/puppetlabs/bin/puppet cert sign %s
-logfile: /tmp/logfile.log
+logfile: /var/log/autosignr/autosignr.log
 credentials:
   - name: My AWS account
     type: aws
