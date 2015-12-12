@@ -1,0 +1,17 @@
+dir: /etc/puppetlabs/puppet/ssl/ca/requests
+cmd_sign: /opt/puppetlabs/bin/puppet cert sign %s
+logfile: /tmp/logfile.log
+credentials:
+  - name: My AWS account
+    type: aws
+    key_id: YOUR_ACCESS_KEY
+    secret_key: YOUR_SECRET_KEY
+    regions:
+      - us-west-2
+      - us-east-1
+  - name: A second AWS account
+    type: aws
+    key_id: YOUR_ACCESS_KEY
+    secret_key: YOUR_SECRET_KEY
+    regions:
+      - us-east-1

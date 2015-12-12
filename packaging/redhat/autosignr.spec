@@ -27,20 +27,21 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
 install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autosignr $RPM_BUILD_ROOT/usr/sbin/
 
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
-#install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/packaging/redhat/amproxy.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/amproxy
-
-#mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/amproxy
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr
+install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/packaging/redhat/autosignr.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/autosignr
+install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/packaging/redhat/autosignr.service $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/autosignr.service
+install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/config.yaml $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr/config.yaml
 
 %post
 /sbin/chkconfig --add autosignr
+systemctl enable autosignr.service
 
 %preun
 if [ $1 = 0 ]; then
-    /sbin/service autosignr stop > /dev/null 2>&1
-    /sbin/chkconfig --del autosignr
+    systemctl stop autosignr.service > /dev/null 2>&1
+    systemctl disable autosignr.service
 fi
 
 %clean
@@ -49,7 +50,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/sbin/autosignr
-#%{_sysconfdir}/rc.d/init.d/amproxy
-#%config(noreplace) %{_sysconfdir}/logrotate.d/amproxy
-
-#%attr(0700,amproxy,amproxy) %dir %{_localstatedir}/log/amproxy
+%config(noreplace) %{_sysconfdir}/logrotate.d/autosignr
+%{_sysconfdir}/systemd/system/autosignr.service
+%config(noreplace) %{_sysconfdir}/autosignr/config.yaml

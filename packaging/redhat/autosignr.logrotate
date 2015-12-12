@@ -1,0 +1,8 @@
+/var/log/autosignr/*.log {
+    daily
+    rotate 14
+    copytruncate
+    compress
+    notifempty
+    missingok
+}

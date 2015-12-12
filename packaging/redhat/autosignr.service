@@ -1,0 +1,9 @@
+[Unit]
+Description=Autosignr Puppet Cert Signer
+
+[Service]
+ExecStart=/usr/sbin/autosignr /etc/autosignr/config.yaml
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
