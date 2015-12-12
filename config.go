@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	Dir      string `yaml:"dir"`
-	Cmdsign  string `yaml:"cmd_sign"`
+	Dir      string
+	Cmdsign  string
+	Logfile  string
 	Accounts []Account
-	Mycreds  []map[string]interface{} `yaml:"credentials"`
+	Mycreds  []map[string]interface{}
 }
 
 func (f *Config) LoadConfigFile(filename string) {
@@ -29,6 +30,10 @@ func (f *Config) LoadConfigFile(filename string) {
 
 	f.Dir = data["dir"].(string)
 	f.Cmdsign = data["cmd_sign"].(string)
+
+	if _, ok := data["logfile"]; ok {
+		f.Logfile = data["logfile"].(string)
+	}
 
 	f.Accounts = make([]Account, len(data["credentials"].([]interface{})))
 

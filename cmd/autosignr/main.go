@@ -15,6 +15,16 @@ func main() {
 
 	conf.LoadConfigFile(os.Args[1])
 
+	if conf.Logfile != "" {
+		f, err := os.OpenFile(conf.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			log.Fatalf("error opening file: %v", err)
+		}
+		defer f.Close()
+
+		log.SetOutput(f)
+	}
+
 	go autosignr.ExistingCerts(conf)
 	autosignr.WatchDir(conf)
 }
