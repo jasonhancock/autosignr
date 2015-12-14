@@ -22,6 +22,26 @@ func CheckCert(conf Config, file string) {
 	extension := filepath.Ext(base)
 	if extension == ".pem" {
 		var name = base[0 : len(base)-len(extension)]
+
+		if conf.CheckPSK {
+			psk, err := PuppetPSKFromCSR(file)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"certname": name,
+					"err":      err,
+				}).Warning("psk-extract-error")
+			} else {
+				if _, ok := conf.PresharedKeys[psk]; !ok {
+					log.WithFields(log.Fields{
+						"certname": name,
+						"psk":      psk,
+					}).Warning("invalid-psk")
+				}
+
+				return
+			}
+		}
+
 		result := false
 		for _, acct := range conf.Accounts {
 			result = acct.Check(name)
@@ -31,7 +51,7 @@ func CheckCert(conf Config, file string) {
 			}
 		}
 		if !result {
-			log.Printf("Unable to validate instance %s", name)
+			log.Warningf("Unable to validate instance %s", name)
 		}
 	}
 }

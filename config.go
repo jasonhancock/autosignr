@@ -8,31 +8,45 @@ import (
 )
 
 type Config struct {
-	Dir      string
-	Cmdsign  string
-	Logfile  string
-	Accounts []Account
-	Mycreds  []map[string]interface{}
+	Dir           string
+	Cmdsign       string
+	Logfile       string
+	CheckPSK      bool
+	Accounts      []Account
+	Mycreds       []map[string]interface{}
+	PresharedKeys map[string]bool
 }
 
 func (f *Config) LoadConfigFile(filename string) {
-	var data map[string]interface{}
-
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 
-	err = yaml.Unmarshal(yamlFile, &data)
+	f.ParseYaml(yamlFile)
+}
+
+func (f *Config) ParseYaml(yamldata []byte) {
+	var data map[string]interface{}
+
+	err := yaml.Unmarshal(yamldata, &data)
 	if err != nil {
 		panic(err)
 	}
 
 	f.Dir = data["dir"].(string)
 	f.Cmdsign = data["cmd_sign"].(string)
+	f.PresharedKeys = make(map[string]bool)
 
 	if _, ok := data["logfile"]; ok {
 		f.Logfile = data["logfile"].(string)
+	}
+
+	if _, ok := data["preshared_keys"]; ok {
+		for _, e := range data["preshared_keys"].([]interface{}) {
+			f.PresharedKeys[e.(string)] = true
+			f.CheckPSK = true
+		}
 	}
 
 	f.Accounts = make([]Account, len(data["credentials"].([]interface{})))
