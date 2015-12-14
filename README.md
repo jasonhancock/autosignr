@@ -9,6 +9,7 @@ Can optionally be configured to validate pre-shared-keys embedded within the CSR
 ## Configuration Options
 
 | Name            | Type                    | Description |
+| --------------- | ----------------------- | ----------- |
 | dir             | string                  | The path to the directory storing CSR files on the Puppetmaster |
 | cmd\_sign       | string                  | The command to execute to sign valid certificates. Should contain `%s` that will be replaced with the cert name |
 | logfile         | string                  | Optional. If specified, log to this file instead of STDOUT |
@@ -39,12 +40,14 @@ preshared_keys:
 Each account must have a `name` and `type` specified. In addition, each type of account may require its own set of attributes.
 
 | Name | Type    | Description |
+| ---- | ------- | ----------- |
 | name | string  | A short, descriptive name for this account. |
 | type | string  | The account type ("aws", etc.) |
 
 #### Account Type: aws
 
 | Name | Type    | Description |
+| ---- | ------- | ----------- |
 | key\_id     | string           | AWS Key Id |
 | secret\_key | string           | AWS Secret Key |
 | regions     | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
