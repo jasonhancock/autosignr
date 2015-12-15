@@ -6,6 +6,25 @@ Can optionally be configured to validate pre-shared-keys embedded within the CSR
 
 **This is a work-in-progress and is far from complete. Use at your own risk**
 
+## Puppet Client Configuration
+
+The Puppet client must use the instance ID as the certname in puppet.conf.
+
+```
+# Configures an AWS instance to use the instance ID as the certname. Use something like this to set it before the puppet client starts for the first time:
+
+CONF=/etc/puppetlabs/puppet/puppet.conf
+
+INSTANCE_ID=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-id`
+
+grep certname $CONF > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "certname = $INSTANCE_ID" >> $CONF
+else
+    sed -i "s/certname =.*/certname = $INSTANCE_ID/" $CONF
+fi
+```
+
 ## Configuration Options
 
 | Name            | Type                    | Description |
