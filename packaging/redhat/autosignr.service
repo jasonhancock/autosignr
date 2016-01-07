@@ -3,7 +3,7 @@ Description=Autosignr Puppet Cert Signer
 After=basic.target network.target
 
 [Service]
-ExecStart=/usr/sbin/autosignr /etc/autosignr/config.yaml
+ExecStart=/usr/sbin/autosignr
 Restart=on-abort
 
 [Install]

@@ -35,7 +35,6 @@ install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/au
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/config.yaml $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr/config.yaml
 
 %post
-/sbin/chkconfig --add autosignr
 systemctl enable autosignr.service
 
 %preun

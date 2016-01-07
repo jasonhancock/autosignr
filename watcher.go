@@ -18,7 +18,10 @@ func WatchDir(conf Config) {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Create == fsnotify.Create {
-					CheckCert(conf, event.Name)
+					result, _ := CheckCert(conf, event.Name)
+					if result {
+						SignCert(conf, CertnameFromFilename(event.Name))
+					}
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)

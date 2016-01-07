@@ -1,6 +1,6 @@
 # autosignr
 
-A daemon that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
+A [Custom Policy Executable](https://docs.puppetlabs.com/puppet/latest/reference/ssl_autosign.html#policy-based-autosigning) or a daemon (depending on your desired mode of operation) that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
 
 Can optionally be configured to validate pre-shared-keys embedded within the CSR. See [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's
 
@@ -25,7 +25,37 @@ else
 fi
 ```
 
+## Modes of operation
+
+Autosignr can function as either a custom policy executable (a process run by the Puppetmaster when a new CSR arrives) or as a standalone daemon that watches for new CSR's and signs them.
+
+### Configuring to run as a custom policy executable
+
+To run as a custom policy executable, add the following to your Puppetmaster's puppet.conf in the `[master]` section:
+
+```
+autosign = /path/to/autosignr
+```
+
+### Running as a daemon
+
+To run as a daemon, simply start the executable. It doesn't fork itself. The redhat packaging includes a systemd unit file which should allow you to start the service as:
+
+```
+service autosignr start
+```
+
+Or more correctly:
+
+```
+systemctl start autosignr.service
+```
+
+If you're on el6 or older, you'll have to craft an init script, run under a process supervisor, etc.
+
 ## Configuration Options
+
+The configuration file lives at `/etc/autosignr/config.yaml`.
 
 | Name            | Type                    | Description |
 | --------------- | ----------------------- | ----------- |

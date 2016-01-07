@@ -17,43 +17,63 @@ import (
 // https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html
 const puppetPSKoid string = "1.3.6.1.4.1.34380.1.1.4"
 
-func CheckCert(conf Config, file string) {
+func CertnameFromFilename(file string) string {
 	base := filepath.Base(file)
 	extension := filepath.Ext(base)
-	if extension == ".pem" {
-		var name = base[0 : len(base)-len(extension)]
 
-		if conf.CheckPSK {
-			psk, err := PuppetPSKFromCSR(file)
-			if err != nil {
+	return base[0 : len(base)-len(extension)]
+}
+
+func CheckCert(conf Config, file string) (bool, error) {
+	name := CertnameFromFilename(file)
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return false, err
+	}
+
+	result, err := ValidateCert(conf, data, name)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !result {
+		log.Warningf("Unable to validate instance %s", name)
+	}
+
+	return result, nil
+}
+
+func ValidateCert(conf Config, data []byte, certname string) (bool, error) {
+	if conf.CheckPSK {
+		psk, err := PuppetPSKFromCSR(data)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"certname": certname,
+				"err":      err,
+			}).Warning("psk-extract-error")
+			return false, err
+		} else {
+			if _, ok := conf.PresharedKeys[psk]; !ok {
 				log.WithFields(log.Fields{
-					"certname": name,
-					"err":      err,
-				}).Warning("psk-extract-error")
-			} else {
-				if _, ok := conf.PresharedKeys[psk]; !ok {
-					log.WithFields(log.Fields{
-						"certname": name,
-						"psk":      psk,
-					}).Warning("invalid-psk")
-				}
-
-				return
+					"certname": certname,
+					"psk":      psk,
+				}).Warning("invalid-psk")
 			}
-		}
 
-		result := false
-		for _, acct := range conf.Accounts {
-			result = acct.Check(name)
-			if result {
-				SignCert(conf, name)
-				break
-			}
-		}
-		if !result {
-			log.Warningf("Unable to validate instance %s", name)
+			return false, errors.New("Invalid PSK")
 		}
 	}
+
+	result := false
+	for _, acct := range conf.Accounts {
+		result = acct.Check(certname)
+		if result {
+			break
+		}
+	}
+
+	return result, nil
 }
 
 func SignCert(conf Config, certname string) {
@@ -85,11 +105,15 @@ func ExistingCerts(conf Config) {
 		log.WithFields(log.Fields{
 			"file": cert,
 		}).Info("existing-csr")
-		CheckCert(conf, cert)
+		result, _ := CheckCert(conf, cert)
+
+		if result {
+			SignCert(conf, CertnameFromFilename(cert))
+		}
 	}
 }
 
-func PuppetPSKFromCSR(file string) (string, error) {
+func PuppetPSKFromCSRFile(file string) (string, error) {
 	var f string
 
 	data, err := ioutil.ReadFile(file)
@@ -97,8 +121,20 @@ func PuppetPSKFromCSR(file string) (string, error) {
 		return f, err
 	}
 
+	f, err = PuppetPSKFromCSR(data)
+
+	return f, err
+}
+
+func PuppetPSKFromCSR(data []byte) (string, error) {
+	var f string
+
 	block, _ := pem.Decode(data)
 	parsedcsr, err := x509.ParseCertificateRequest(block.Bytes)
+
+	if err != nil {
+		return f, err
+	}
 
 	for _, e := range parsedcsr.Extensions {
 		if e.Id.String() == puppetPSKoid {

@@ -17,6 +17,8 @@ type Config struct {
 	PresharedKeys map[string]bool
 }
 
+const DefaultConfigFile string = "/etc/autosignr/config.yaml"
+
 func (f *Config) LoadConfigFile(filename string) {
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
