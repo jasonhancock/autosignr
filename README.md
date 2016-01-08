@@ -4,7 +4,7 @@
 
 A [Custom Policy Executable](https://docs.puppetlabs.com/puppet/latest/reference/ssl_autosign.html#policy-based-autosigning) or a daemon (depending on your desired mode of operation) that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
 
-Can optionally be configured to validate pre-shared-keys embedded within the CSR. See [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's
+Autosignr can optionally be configured to validate pre-shared-keys embedded within the CSR. See the blurb in the Puppet Client Configuration section below for more details on how to embed a PSK into your CSRs.
 
 **This is a work-in-progress and is far from complete. Use at your own risk**
 
@@ -26,6 +26,17 @@ else
     sed -i "s/certname =.*/certname = $INSTANCE_ID/" $CONF
 fi
 ```
+
+### Optionally embedding a pre-shared key in the CSR
+
+To embed a PSK in your CSR, create the `csr\_attributes.yaml` file in Puppet's `$confdir`. The file looks something like this:
+
+```
+extension_requests:
+    pp_preshared_key: my_preshared_key
+```
+
+For the full list of possible extensions and options that can be put into that file, see the [Puppet documentation](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html).
 
 ## Modes of operation
 
