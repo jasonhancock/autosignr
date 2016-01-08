@@ -3,6 +3,6 @@ all: deps
 deps:
 	go get -v ./...
 test:
-	go test
+	go test -v ./...
 package:
 	$(MAKE) -C packaging
