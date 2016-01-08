@@ -29,7 +29,7 @@ fi
 
 ### Optionally embedding a pre-shared key in the CSR
 
-To embed a PSK in your CSR, create the `csr\_attributes.yaml` file in Puppet's `$confdir`. The file looks something like this:
+To embed a PSK in your CSR, create the `csr_attributes.yaml` file in Puppet's `$confdir`. The file looks something like this:
 
 ```
 extension_requests:
