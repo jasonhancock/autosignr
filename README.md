@@ -1,5 +1,7 @@
 # autosignr
 
+[![Build Status](https://travis-ci.org/jasonhancock/autosignr.svg?branch=master)](https://travis-ci.org/jasonhancock/autosignr)
+
 A [Custom Policy Executable](https://docs.puppetlabs.com/puppet/latest/reference/ssl_autosign.html#policy-based-autosigning) or a daemon (depending on your desired mode of operation) that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
 
 Can optionally be configured to validate pre-shared-keys embedded within the CSR. See [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's
