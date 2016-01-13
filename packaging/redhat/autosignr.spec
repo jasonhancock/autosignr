@@ -54,4 +54,4 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/autosignr
 %{_sysconfdir}/systemd/system/autosignr.service
 %config(noreplace) %{_sysconfdir}/autosignr/config.yaml
-%attr(0700,root,root) %dir %{_localstatedir}/log/amproxy
+%attr(0700,root,root) %dir %{_localstatedir}/log/autosignr
