@@ -34,6 +34,8 @@ install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/au
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/packaging/redhat/autosignr.service $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/autosignr.service
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/config.yaml $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr/config.yaml
 
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/autosignr
+
 %post
 systemctl enable autosignr.service
 
@@ -52,3 +54,4 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/autosignr
 %{_sysconfdir}/systemd/system/autosignr.service
 %config(noreplace) %{_sysconfdir}/autosignr/config.yaml
+%attr(0700,root,root) %dir %{_localstatedir}/log/amproxy
