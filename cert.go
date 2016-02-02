@@ -26,6 +26,7 @@ func CertnameFromFilename(file string) string {
 
 func CheckCert(conf Config, file string) (bool, error) {
 	name := CertnameFromFilename(file)
+	log.Debugf("CheckCert %s", name)
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return false, err
@@ -45,6 +46,7 @@ func CheckCert(conf Config, file string) (bool, error) {
 }
 
 func ValidateCert(conf Config, data []byte, certname string) (bool, error) {
+	log.Debugf("ValidateCert %s", certname)
 	if conf.CheckPSK {
 		psk, err := PuppetPSKFromCSR(data)
 		if err != nil {
@@ -59,9 +61,8 @@ func ValidateCert(conf Config, data []byte, certname string) (bool, error) {
 					"certname": certname,
 					"psk":      psk,
 				}).Warning("invalid-psk")
+				return false, errors.New("Invalid PSK")
 			}
-
-			return false, errors.New("Invalid PSK")
 		}
 	}
 
