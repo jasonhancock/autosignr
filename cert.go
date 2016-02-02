@@ -141,7 +141,11 @@ func PuppetPSKFromCSR(data []byte) (string, error) {
 		if e.Id.String() == puppetPSKoid {
 			// the first char of the trimmed string is ASCII 22,
 			// synchronous idle, so remove that too
-			f = strings.TrimSpace(string(e.Value))[1:]
+			//f = strings.TrimSpace(string(e.Value))[1:]
+
+			//The above may have been a fluke/artifact of a bad copy/paste
+
+			f = strings.TrimSpace(string(e.Value))
 			return f, nil
 		}
 	}
