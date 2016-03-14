@@ -1,8 +1,6 @@
 package main
 
 import (
-	//"io/ioutil"
-	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jasonhancock/autosignr"
 	"github.com/spf13/viper"
