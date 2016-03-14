@@ -86,6 +86,4 @@ func main() {
 			log.Println("Didn't find the instance and it doesn't match any patterns: " + certname)
 		}
 	}
-
-	fmt.Printf("%v\n", list)
 }
