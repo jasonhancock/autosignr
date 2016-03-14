@@ -1,0 +1,9 @@
+logfile: /var/log/autosignr/autocleanr.log
+clean_commands:
+  - /opt/puppetlabs/bin/puppet node deactivate %s
+  - /opt/puppetlabs/bin/puppet node clean %s
+inactive_hours: 2
+puppetdb_host: puppetdb.example.com
+puppetdb_protocol: https
+puppetdb_ignore_cert_errors: false
+puppetdb_nodes_uri: /api/pdb/query/v4/nodes

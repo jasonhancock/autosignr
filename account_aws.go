@@ -11,11 +11,12 @@ import (
 )
 
 type AccountAWS struct {
-	Name      string
-	Key       string
-	Secret    string
-	Regions   []string
-	aws_creds *credentials.Credentials
+	Name        string
+	Key         string
+	Secret      string
+	Regions     []string
+	AccountType string
+	aws_creds   *credentials.Credentials
 }
 
 func NewAccountAWS(data map[interface{}]interface{}) *AccountAWS {
@@ -26,10 +27,11 @@ func NewAccountAWS(data map[interface{}]interface{}) *AccountAWS {
 	}
 
 	f := AccountAWS{
-		Name:    data["name"].(string),
-		Key:     data["key_id"].(string),
-		Secret:  data["secret_key"].(string),
-		Regions: r,
+		Name:        data["name"].(string),
+		Key:         data["key_id"].(string),
+		Secret:      data["secret_key"].(string),
+		Regions:     r,
+		AccountType: "aws",
 	}
 
 	f.aws_creds = credentials.NewStaticCredentials(
@@ -38,6 +40,10 @@ func NewAccountAWS(data map[interface{}]interface{}) *AccountAWS {
 		"")
 
 	return &f
+}
+
+func (a AccountAWS) Type() string {
+	return a.AccountType
 }
 
 func (a AccountAWS) Check(instanceId string) bool {

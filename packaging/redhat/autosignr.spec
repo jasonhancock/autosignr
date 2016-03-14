@@ -26,6 +26,7 @@ cd src/github.com/jasonhancock/autosignr && make
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
 install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autosignr $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autocleanr $RPM_BUILD_ROOT/usr/sbin/
 
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d
@@ -33,6 +34,7 @@ mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/packaging/redhat/autosignr.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/autosignr
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/packaging/redhat/autosignr.service $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/autosignr.service
 install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/config.yaml $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr/config.yaml
+install -m 0644 $RPM_BUILD_DIR/%{name}-%{version}/src/github.com/jasonhancock/autosignr/autocleanr.yaml $RPM_BUILD_ROOT/%{_sysconfdir}/autosignr/autocleanr.yaml
 
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/autosignr
 
@@ -54,4 +56,5 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/autosignr
 %{_sysconfdir}/systemd/system/autosignr.service
 %config(noreplace) %{_sysconfdir}/autosignr/config.yaml
+%config(noreplace) %{_sysconfdir}/autosignr/autocleanr.yaml
 %attr(0700,root,root) %dir %{_localstatedir}/log/autosignr
