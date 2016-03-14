@@ -20,7 +20,7 @@ func TestPSKExtraction(t *testing.T) {
 	}
 
 	if psk != "my_preshared_key_jason" {
-		t.Errorf("PSK did not match expected value")
+		t.Errorf("PSK did not match expected value %s", psk)
 	}
 }
 

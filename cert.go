@@ -5,12 +5,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // The OID for Puppet's pp_preshared_key in the Certificate Extensions
@@ -131,6 +131,10 @@ func PuppetPSKFromCSR(data []byte) (string, error) {
 	var f string
 
 	block, _ := pem.Decode(data)
+	if block == nil {
+		return f, errors.New("No PEM data found in block")
+	}
+
 	parsedcsr, err := x509.ParseCertificateRequest(block.Bytes)
 
 	if err != nil {
@@ -139,14 +143,15 @@ func PuppetPSKFromCSR(data []byte) (string, error) {
 
 	for _, e := range parsedcsr.Extensions {
 		if e.Id.String() == puppetPSKoid {
-			// the first char of the trimmed string is ASCII 22,
-			// synchronous idle, so remove that too
-			//f = strings.TrimSpace(string(e.Value))[1:]
+			r, err := regexp.Compile("([a-zA-Z0-9_\\-\\.]+)")
+			if err != nil {
+				log.Fatalf("Unable to compile psk regex: " + err.Error())
+			}
 
-			//The above may have been a fluke/artifact of a bad copy/paste
-
-			f = strings.TrimSpace(string(e.Value))
-			return f, nil
+			match := r.FindStringSubmatch(string(e.Value))
+			if len(match) > 0 {
+				return match[1], nil
+			}
 		}
 	}
 
