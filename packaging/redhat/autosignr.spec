@@ -52,6 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
+/usr/sbin/autocleanr
 /usr/sbin/autosignr
 %config(noreplace) %{_sysconfdir}/logrotate.d/autosignr
 %{_sysconfdir}/systemd/system/autosignr.service
