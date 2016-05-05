@@ -17,7 +17,7 @@ func WatchDir(conf Config) {
 		for {
 			select {
 			case event := <-watcher.Events:
-				if event.Op&fsnotify.Create == fsnotify.Create {
+				if event.Op&fsnotify.Write == fsnotify.Write {
 					result, _ := CheckCert(conf, event.Name)
 					if result {
 						SignCert(conf, CertnameFromFilename(event.Name))
