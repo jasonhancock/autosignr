@@ -3,7 +3,6 @@ package autosignr
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
@@ -11,20 +10,29 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // The OID for Puppet's pp_preshared_key in the Certificate Extensions
 // https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html
 const puppetPSKoid string = "1.3.6.1.4.1.34380.1.1.4"
 
-func CertnameFromFilename(file string) string {
-	base := filepath.Base(file)
-	extension := filepath.Ext(base)
+// ErrNoPemData is returned when the data expected to be a PEM encoded cert is not actually a cert
+var ErrNoPemData = errors.New("no PEM data found in block")
 
-	return base[0 : len(base)-len(extension)]
+// ErrNoPSK is returned when a certificate does not contain a preshared key
+var ErrNoPSK = errors.New("certificate did not contain a PSK")
+
+// regexpPSK limits what the PSK can contain to alphanumeric chars plus '_', '-', and '.'
+var regexpPSK = regexp.MustCompile("([a-zA-Z0-9_\\-\\.]+)")
+
+// CertnameFromFilename returns the name of a cert given the path to the file
+func CertnameFromFilename(file string) string {
+	return strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 }
 
-func CheckCert(conf Config, file string) (bool, error) {
+func CheckCert(conf *Config, file string) (bool, error) {
 	name := CertnameFromFilename(file)
 	log.Debugf("CheckCert %s", name)
 	data, err := ioutil.ReadFile(file)
@@ -45,7 +53,7 @@ func CheckCert(conf Config, file string) (bool, error) {
 	return result, nil
 }
 
-func ValidateCert(conf Config, data []byte, certname string) (bool, error) {
+func ValidateCert(conf *Config, data []byte, certname string) (bool, error) {
 	log.Debugf("ValidateCert %s", certname)
 	if conf.CheckPSK {
 		psk, err := PuppetPSKFromCSR(data)
@@ -77,8 +85,8 @@ func ValidateCert(conf Config, data []byte, certname string) (bool, error) {
 	return result, nil
 }
 
-func SignCert(conf Config, certname string) {
-	cmd := fmt.Sprintf(conf.Cmdsign, certname)
+func SignCert(conf *Config, certname string) {
+	cmd := fmt.Sprintf(conf.CmdSign, certname)
 	pieces := strings.Split(cmd, " ")
 
 	cmdOut, err := exec.Command(pieces[0], pieces[1:]...).CombinedOutput()
@@ -95,11 +103,10 @@ func SignCert(conf Config, certname string) {
 	}).Info("signing-success")
 }
 
-func ExistingCerts(conf Config) {
-
+func ExistingCerts(conf *Config) error {
 	matches, err := filepath.Glob(fmt.Sprintf("%s/*.pem", conf.Dir))
 	if err != nil {
-		log.Println("Glob error for: %s", err)
+		return errors.Wrap(err, "globbing")
 	}
 
 	for _, cert := range matches {
@@ -112,6 +119,8 @@ func ExistingCerts(conf Config) {
 			SignCert(conf, CertnameFromFilename(cert))
 		}
 	}
+
+	return nil
 }
 
 func PuppetPSKFromCSRFile(file string) (string, error) {
@@ -122,38 +131,28 @@ func PuppetPSKFromCSRFile(file string) (string, error) {
 		return f, err
 	}
 
-	f, err = PuppetPSKFromCSR(data)
-
-	return f, err
+	return PuppetPSKFromCSR(data)
 }
 
 func PuppetPSKFromCSR(data []byte) (string, error) {
-	var f string
-
 	block, _ := pem.Decode(data)
 	if block == nil {
-		return f, errors.New("No PEM data found in block")
+		return "", ErrNoPemData
 	}
 
 	parsedcsr, err := x509.ParseCertificateRequest(block.Bytes)
-
 	if err != nil {
-		return f, err
+		return "", err
 	}
 
 	for _, e := range parsedcsr.Extensions {
 		if e.Id.String() == puppetPSKoid {
-			r, err := regexp.Compile("([a-zA-Z0-9_\\-\\.]+)")
-			if err != nil {
-				log.Fatalf("Unable to compile psk regex: " + err.Error())
-			}
-
-			match := r.FindStringSubmatch(string(e.Value))
+			match := regexpPSK.FindStringSubmatch(string(e.Value))
 			if len(match) > 0 {
 				return match[1], nil
 			}
 		}
 	}
 
-	return f, errors.New("Certificate did not contain a PSK")
+	return "", ErrNoPSK
 }

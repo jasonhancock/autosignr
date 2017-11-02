@@ -1,19 +1,18 @@
-package autosignr_test
+package autosignr
 
 import (
 	"testing"
 
-	"github.com/jasonhancock/autosignr"
+	"github.com/cheekybits/is"
 )
 
 var data1 = `
 dir: /etc/puppetlabs/puppet/ssl/ca/requests
 cmd_sign: puppet cert sign %s
-credentials:
+accounts_aws:
   - name: jhancock aws packer
-    type: aws
-    key_id: abc123
-    secret_key: def456
+    key: abc123
+    secret: def456
     regions:
       - us-west-2
       - us-east-1
@@ -23,11 +22,10 @@ var data2 = `
 dir: /etc/puppetlabs/puppet/ssl/ca/requests
 cmd_sign: puppet cert sign %s
 logfile: /tmp/logfile.log
-credentials:
+accounts_aws:
   - name: jhancock aws packer
-    type: aws
-    key_id: abc123
-    secret_key: def456
+    key: abc123
+    secret: def456
     regions:
       - us-west-2
       - us-east-1
@@ -37,27 +35,27 @@ preshared_keys:
 `
 
 func TestConfigParsing(t *testing.T) {
+	is := is.New(t)
 
-	var conf1, conf2 autosignr.Config
+	conf1, err := ParseYaml([]byte(data1))
+	is.NoErr(err)
+	is.False(conf1.CheckPSK)
 
-	conf1.ParseYaml([]byte(data1))
-	conf2.ParseYaml([]byte(data2))
+	is.Equal(1, len(conf1.Accounts))
+	acct, ok := conf1.Accounts[0].(*AccountAWS)
+	is.OK(ok)
+	is.Equal("abc123", acct.Key)
+	is.Equal("def456", acct.Secret)
+	is.Equal(2, len(acct.Regions))
+	is.Equal("us-west-2", acct.Regions[0])
 
-	// Check PSK values
-	if conf1.CheckPSK != false {
-		t.Errorf("Expected conf1 to have CheckPSK set to false")
-	}
+	conf2, err := ParseYaml([]byte(data2))
+	is.NoErr(err)
+	is.True(conf2.CheckPSK)
 
-	if conf2.CheckPSK != true {
-		t.Errorf("Expected conf2 to have CheckPSK set to true")
-	}
+	_, ok = conf2.PresharedKeys["abc123"]
+	is.OK(ok)
 
-	// Verify the PSK is set in conf2
-	if _, ok := conf2.PresharedKeys["abc123"]; !ok {
-		t.Errorf("expected PSK abc123 not detected")
-	}
-
-	if _, ok := conf2.PresharedKeys["abc1234"]; ok {
-		t.Errorf("unexpected PSK abc123i4 detected")
-	}
+	_, ok = conf2.PresharedKeys["abc1234"]
+	is.OK(!ok)
 }

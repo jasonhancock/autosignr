@@ -8,14 +8,15 @@ import (
 	"regexp"
 )
 
-var conf autosignr.Config
-
 func main() {
 	log.SetLevel(log.DebugLevel)
 	log.SetFormatter(&log.JSONFormatter{})
 
 	// autocleanr reads both the autosignr config file and the autocleanr specific config file
-	conf.LoadConfigFile(autosignr.DefaultConfigFile)
+	conf, err := autosignr.LoadConfigFile(autosignr.DefaultConfigFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Read in the autocleanr config
 	viper.AutomaticEnv()
@@ -29,7 +30,7 @@ func main() {
 	viper.SetConfigName("autocleanr")
 	viper.AddConfigPath("/etc/autosignr")
 	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
 		switch i := err.(type) {
 		case viper.UnsupportedConfigError:

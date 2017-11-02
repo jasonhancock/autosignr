@@ -71,13 +71,13 @@ If you're on el6 or older, you'll have to craft an init script, run under a proc
 
 The configuration file lives at `/etc/autosignr/config.yaml`.
 
-| Name            | Type                    | Description |
-| --------------- | ----------------------- | ----------- |
-| dir             | string                  | The path to the directory storing CSR files on the Puppetmaster |
-| cmd\_sign       | string                  | The command to execute to sign valid certificates. Should contain `%s` that will be replaced with the cert name |
-| logfile         | string                  | Optional. If specified, log to this file instead of STDOUT |
-| credentials     | array of account hashes | Each account needs to have a `type` key specified. More details below. Accounts are searched in the order specified. |
-| preshared\_keys | array of strings        | Optional. Array of valid preshared keys embedded within the certificate's extension fields. See the Puppetlab's documentation on [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's. If PSKs are defined in the configuration, then all CSR's will be required to have valid PSK's to be automatically signed |
+| Name            | Type                        | Description |
+| --------------- | --------------------------- | ----------- |
+| dir             | string                      | The path to the directory storing CSR files on the Puppetmaster |
+| cmd\_sign       | string                      | The command to execute to sign valid certificates. Should contain `%s` that will be replaced with the cert name |
+| logfile         | string                      | Optional. If specified, log to this file instead of STDOUT |
+| accounts\_aws   | array of AWS account hashes | See AWS Account details below. Accounts are searched in the order specified. |
+| preshared\_keys | array of strings            | Optional. Array of valid preshared keys embedded within the certificate's extension fields. See the Puppetlab's documentation on [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's. If PSKs are defined in the configuration, then all CSR's will be required to have valid PSK's to be automatically signed |
 
 Example Configuration:
 
@@ -85,11 +85,10 @@ Example Configuration:
 dir: /etc/puppetlabs/puppet/ssl/ca/requests
 cmd_sign: /opt/puppetlabs/bin/puppet cert sign %s
 logfile: /var/log/autosignr/autosignr.log
-credentials:
+accounts_aws:
   - name: jhancock aws packer
-    type: aws
-    key_id: AWS_KEY_ID
-    secret_key: AWS_SECRET_KEY
+    key: AWS_KEY_ID
+    secret: AWS_SECRET_KEY
     regions:
       - us-west-2
       - us-east-1
@@ -100,23 +99,16 @@ preshared_keys:
 
 ### Account Configuration
 
-Each account must have a `name` and `type` specified. In addition, each type of account may require its own set of attributes.
+Each account must have a `name` specified. In addition, each type of account may require its own set of attributes.
 
 | Name | Type    | Description |
 | ---- | ------- | ----------- |
 | name | string  | A short, descriptive name for this account. |
-| type | string  | The account type ("aws", etc.) |
 
 #### Account Type: aws
 
-| Name | Type    | Description |
-| ---- | ------- | ----------- |
-| key\_id     | string           | AWS Key Id |
-| secret\_key | string           | AWS Secret Key |
-| regions     | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
-
-
-# TODO:
-* OpenStack Support
-* CloudStack Support
-* Random REST Support?
+| Name    | Type             | Description |
+| ------- | ---------------- | ----------- |
+| key     | string           | AWS Key Id |
+| secret  | string           | AWS Secret Key |
+| regions | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |

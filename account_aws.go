@@ -11,42 +11,27 @@ import (
 )
 
 type AccountAWS struct {
-	Name        string
-	Key         string
-	Secret      string
-	Regions     []string
-	AccountType string
-	aws_creds   *credentials.Credentials
+	Name     string   `yaml:"name"`
+	Key      string   `yaml:"key"`
+	Secret   string   `yaml:"secret"`
+	Regions  []string `yaml:"regions"`
+	awsCreds *credentials.Credentials
 }
 
-func NewAccountAWS(data map[interface{}]interface{}) *AccountAWS {
-
-	r := make([]string, len(data["regions"].([]interface{})))
-	for i := range data["regions"].([]interface{}) {
-		r[i] = data["regions"].([]interface{})[i].(string)
-	}
-
-	f := AccountAWS{
-		Name:        data["name"].(string),
-		Key:         data["key_id"].(string),
-		Secret:      data["secret_key"].(string),
-		Regions:     r,
-		AccountType: "aws",
-	}
-
-	f.aws_creds = credentials.NewStaticCredentials(
-		f.Key,
-		f.Secret,
+func (a *AccountAWS) Init() error {
+	a.awsCreds = credentials.NewStaticCredentials(
+		a.Key,
+		a.Secret,
 		"")
 
-	return &f
+	return nil
 }
 
-func (a AccountAWS) Type() string {
-	return a.AccountType
+func (a *AccountAWS) Type() string {
+	return "aws"
 }
 
-func (a AccountAWS) Check(instanceId string) bool {
+func (a *AccountAWS) Check(instanceId string) bool {
 	for _, region := range a.Regions {
 
 		log.WithFields(log.Fields{
@@ -56,7 +41,7 @@ func (a AccountAWS) Check(instanceId string) bool {
 		}).Debug("checking")
 
 		svc := ec2.New(session.New(), &aws.Config{
-			Credentials: a.aws_creds,
+			Credentials: a.awsCreds,
 			Region:      aws.String(region),
 		})
 
@@ -74,7 +59,8 @@ func (a AccountAWS) Check(instanceId string) bool {
 		// Call the DescribeInstances Operation
 		resp, err := svc.DescribeInstances(params)
 		if err != nil {
-			panic(err)
+			log.Println(err)
+			continue
 		}
 
 		found := len(resp.Reservations) > 0
@@ -93,6 +79,6 @@ func (a AccountAWS) Check(instanceId string) bool {
 	return false
 }
 
-func (a AccountAWS) String() string {
+func (a *AccountAWS) String() string {
 	return fmt.Sprintf("aws account: %s", a.Name)
 }

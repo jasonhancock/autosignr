@@ -1,64 +1,81 @@
 package autosignr
 
 import (
-	"fmt"
 	"io/ioutil"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct {
-	Dir           string
-	Cmdsign       string
-	Logfile       string
-	CheckPSK      bool
-	Accounts      []Account
-	Mycreds       []map[string]interface{}
-	PresharedKeys map[string]bool
-}
-
 const DefaultConfigFile string = "/etc/autosignr/config.yaml"
 
-func (f *Config) LoadConfigFile(filename string) {
-	yamlFile, err := ioutil.ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
-
-	f.ParseYaml(yamlFile)
+type Config struct {
+	Dir           string
+	CmdSign       string
+	LogFile       string
+	CheckPSK      bool
+	PresharedKeys map[string]struct{}
+	Accounts      []Account
 }
 
-func (f *Config) ParseYaml(yamldata []byte) {
-	var data map[string]interface{}
+type parsedConfig struct {
+	Dir           string       `yaml:"dir"`
+	CmdSign       string       `yaml:"cmd_sign"`
+	LogFile       string       `yaml:"logfile"`
+	AWSAccounts   []AccountAWS `yaml:"accounts_aws"`
+	PresharedKeys []string     `yaml:"preshared_keys"`
+}
 
-	err := yaml.Unmarshal(yamldata, &data)
+func (c *Config) Init() error {
+	for i := range c.Accounts {
+		err := c.Accounts[i].Init()
+		if err != nil {
+			errors.Wrapf(err, "initializing account %s", c.Accounts[i])
+		}
+	}
+	return nil
+}
+
+func (p *parsedConfig) Config() *Config {
+	c := &Config{
+		Dir:           p.Dir,
+		CmdSign:       p.CmdSign,
+		LogFile:       p.LogFile,
+		Accounts:      make([]Account, 0, len(p.AWSAccounts)),
+		PresharedKeys: make(map[string]struct{}, len(p.PresharedKeys)),
+	}
+
+	if len(p.PresharedKeys) > 0 {
+		c.CheckPSK = true
+	}
+
+	for i := range p.PresharedKeys {
+		c.PresharedKeys[p.PresharedKeys[i]] = struct{}{}
+	}
+
+	for i := range p.AWSAccounts {
+		c.Accounts = append(c.Accounts, &p.AWSAccounts[i])
+	}
+
+	return c
+}
+
+func LoadConfigFile(filename string) (*Config, error) {
+	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return nil, errors.Wrap(err, "reading config file")
 	}
 
-	f.Dir = data["dir"].(string)
-	f.Cmdsign = data["cmd_sign"].(string)
-	f.PresharedKeys = make(map[string]bool)
+	return ParseYaml(yamlFile)
+}
 
-	if _, ok := data["logfile"]; ok {
-		f.Logfile = data["logfile"].(string)
+func ParseYaml(yamldata []byte) (*Config, error) {
+	var f parsedConfig
+
+	err := yaml.Unmarshal(yamldata, &f)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshalling yaml")
 	}
 
-	if _, ok := data["preshared_keys"]; ok {
-		for _, e := range data["preshared_keys"].([]interface{}) {
-			f.PresharedKeys[e.(string)] = true
-			f.CheckPSK = true
-		}
-	}
-
-	f.Accounts = make([]Account, len(data["credentials"].([]interface{})))
-
-	for i, e := range data["credentials"].([]interface{}) {
-		switch e.(map[interface{}]interface{})["type"].(string) {
-		case "aws":
-			f.Accounts[i] = NewAccountAWS(e.(map[interface{}]interface{}))
-		default:
-			panic(fmt.Sprintf("Unsupported Account type: %s", e.(map[interface{}]interface{})["type"].(string)))
-		}
-	}
+	return f.Config(), nil
 }

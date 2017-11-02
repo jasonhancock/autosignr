@@ -1,36 +1,22 @@
-package autosignr_test
+package autosignr
 
 import (
-	"path"
-	"runtime"
 	"testing"
 
-	"github.com/jasonhancock/autosignr"
+	"github.com/cheekybits/is"
 )
 
 func TestPSKExtraction(t *testing.T) {
+	is := is.New(t)
 
-	_, filename, _, _ := runtime.Caller(0)
-	f := path.Join(path.Dir(filename), "testdata", "cert_csr_psk.pem")
-
-	psk, err := autosignr.PuppetPSKFromCSRFile(f)
-
-	if err != nil {
-		t.Errorf("Not expecting an error extracting PSK from cert_csr_psk.pem")
-	}
-
-	if psk != "my_preshared_key_jason" {
-		t.Errorf("PSK did not match expected value %s", psk)
-	}
+	psk, err := PuppetPSKFromCSRFile("testdata/cert_csr_psk.pem")
+	is.NoErr(err)
+	is.Equal(psk, "my_preshared_key_jason")
 }
 
 func TestCertnameFromFilename(t *testing.T) {
+	is := is.New(t)
 
 	f := "/path/to/a/filename.example.com.pem"
-
-	certname := autosignr.CertnameFromFilename(f)
-
-	if certname != "filename.example.com" {
-		t.Errorf("Returned certname did not match expected")
-	}
+	is.Equal("filename.example.com", CertnameFromFilename(f))
 }

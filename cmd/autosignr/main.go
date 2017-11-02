@@ -6,6 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jasonhancock/autosignr"
+	"github.com/pkg/errors"
 )
 
 var conf autosignr.Config
@@ -14,10 +15,13 @@ func main() {
 	log.SetLevel(log.DebugLevel)
 	log.SetFormatter(&log.JSONFormatter{})
 
-	conf.LoadConfigFile(autosignr.DefaultConfigFile)
+	conf, err := autosignr.LoadConfigFile(autosignr.DefaultConfigFile)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "loading config file"))
+	}
 
-	if conf.Logfile != "" {
-		f, err := os.OpenFile(conf.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if conf.LogFile != "" {
+		f, err := os.OpenFile(conf.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
 			log.Fatalf("error opening file: %v", err)
 		}
@@ -49,7 +53,13 @@ func main() {
 
 	} else {
 		// Operate in daemon mode, operate on fsnotify events
-		go autosignr.ExistingCerts(conf)
-		autosignr.WatchDir(conf)
+		err := autosignr.ExistingCerts(conf)
+		if err != nil {
+			log.Println(errors.Wrap(err, "existing certs"))
+		}
+		err = autosignr.WatchDir(conf)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

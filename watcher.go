@@ -5,10 +5,10 @@ import (
 	"gopkg.in/fsnotify.v1"
 )
 
-func WatchDir(conf Config) {
+func WatchDir(conf *Config) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer watcher.Close()
 
@@ -32,7 +32,8 @@ func WatchDir(conf Config) {
 	log.Printf("watching %s", conf.Dir)
 	err = watcher.Add(conf.Dir)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	<-done
+	return nil
 }
