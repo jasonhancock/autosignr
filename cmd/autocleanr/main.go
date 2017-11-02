@@ -48,6 +48,10 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 
+	if err := conf.Init(); err != nil {
+		log.Fatal(err)
+	}
+
 	list, err := autosignr.FindInactiveNodes(
 		viper.GetInt("inactive_hours"),
 		viper.GetString("puppetdb_host"),

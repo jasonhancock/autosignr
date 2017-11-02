@@ -30,6 +30,10 @@ func main() {
 		log.SetOutput(f)
 	}
 
+	if err := conf.Init(); err != nil {
+		log.Fatal(err)
+	}
+
 	// If we were passed an argument, that means we're operating as a custom
 	// policy executable. Expect the certname as the only argument, and the
 	// certificate data pem encoded on stdin
