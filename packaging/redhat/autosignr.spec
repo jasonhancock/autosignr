@@ -27,7 +27,7 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
 install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/aws_tag_for_instance $RPM_BUILD_ROOT/usr/bin/
-install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autocleanr $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autosignr $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 $RPM_BUILD_DIR/%{name}-%{version}/bin/autocleanr $RPM_BUILD_ROOT/usr/sbin/
 
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system/
