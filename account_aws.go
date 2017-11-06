@@ -32,6 +32,10 @@ func (a *AccountAWS) Type() string {
 }
 
 func (a *AccountAWS) Check(instanceId string) bool {
+	return a.GetInstance(instanceId) != nil
+}
+
+func (a *AccountAWS) GetInstance(instanceId string) *ec2.Instance {
 	for _, region := range a.Regions {
 
 		log.WithFields(log.Fields{
@@ -63,20 +67,32 @@ func (a *AccountAWS) Check(instanceId string) bool {
 			continue
 		}
 
-		found := len(resp.Reservations) > 0
-		log.WithFields(log.Fields{
-			"instance": instanceId,
-			"region":   region,
-			"account":  a.Name,
-			"found":    found,
-		}).Debug("check-result")
+		if len(resp.Reservations) == 0 {
+			log.WithFields(log.Fields{
+				"instance": instanceId,
+				"region":   region,
+				"account":  a.Name,
+				"found":    false,
+			}).Debug("check-result")
+			continue
+		}
 
-		if found {
-			return true
+		for i := range resp.Reservations {
+			for j := range resp.Reservations[i].Instances {
+				if *resp.Reservations[i].Instances[j].InstanceId == instanceId {
+					log.WithFields(log.Fields{
+						"instance": instanceId,
+						"region":   region,
+						"account":  a.Name,
+						"found":    true,
+					}).Debug("check-result")
+					return resp.Reservations[i].Instances[j]
+				}
+			}
 		}
 	}
 
-	return false
+	return nil
 }
 
 func (a *AccountAWS) String() string {
