@@ -11,14 +11,18 @@ import (
 )
 
 type AccountAWS struct {
-	Name     string   `yaml:"name"`
-	Key      string   `yaml:"key"`
-	Secret   string   `yaml:"secret"`
-	Regions  []string `yaml:"regions"`
-	awsCreds *credentials.Credentials
+	Name      string   `yaml:"name"`
+	Key       string   `yaml:"key"`
+	Secret    string   `yaml:"secret"`
+	Regions   []string `yaml:"regions"`
+	Attribute string   `yaml:"attribute"`
+	awsCreds  *credentials.Credentials
 }
 
 func (a *AccountAWS) Init() error {
+	if a.Attribute == "" {
+		a.Attribute = "instance-id"
+	}
 	a.awsCreds = credentials.NewStaticCredentials(
 		a.Key,
 		a.Secret,
@@ -52,7 +56,7 @@ func (a *AccountAWS) GetInstance(instanceId string) *ec2.Instance {
 		params := &ec2.DescribeInstancesInput{
 			Filters: []*ec2.Filter{
 				{
-					Name: aws.String("instance-id"),
+					Name: aws.String(a.Attribute),
 					Values: []*string{
 						aws.String(instanceId),
 					},

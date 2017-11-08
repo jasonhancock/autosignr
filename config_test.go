@@ -13,6 +13,7 @@ accounts_aws:
   - name: jhancock aws packer
     key: abc123
     secret: def456
+    attribute: 'tag:Name'
     regions:
       - us-west-2
       - us-east-1
@@ -48,6 +49,7 @@ func TestConfigParsing(t *testing.T) {
 	is.Equal("def456", acct.Secret)
 	is.Equal(2, len(acct.Regions))
 	is.Equal("us-west-2", acct.Regions[0])
+	is.Equal("tag:Name", acct.Attribute)
 
 	conf2, err := ParseYaml([]byte(data2))
 	is.NoErr(err)

@@ -107,8 +107,9 @@ Each account must have a `name` specified. In addition, each type of account may
 
 #### Account Type: aws
 
-| Name    | Type             | Description |
-| ------- | ---------------- | ----------- |
-| key     | string           | AWS Key Id |
-| secret  | string           | AWS Secret Key |
-| regions | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
+| Name      | Type             | Description |
+| --------- | ---------------- | ----------- |
+| key       | string           | AWS Key Id |
+| secret    | string           | AWS Secret Key |
+| regions   | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
+| attribute | string           | Optional. Defaults to `instance-id`. The name of the attribute to compare the certname against. Useful for using a tag to compare against instead of the instance id...set to `tag:Name` to compare against the `Name` tag |      
