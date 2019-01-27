@@ -1,11 +1,11 @@
 package main
 
 import (
+	"os"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/jasonhancock/autosignr"
 	"github.com/spf13/viper"
-	"os"
-	"regexp"
 )
 
 func main() {
@@ -22,6 +22,7 @@ func main() {
 	viper.AutomaticEnv()
 	viper.SetDefault("logfile", "/var/log/autosignr/autocleanr.log")
 	viper.SetDefault("clean_commands", []string{})
+	viper.SetDefault("include_facts", make(map[string][]string))
 	viper.SetDefault("inactive_hours", 2)
 	viper.SetDefault("puppetdb_host", "puppetdb")
 	viper.SetDefault("puppetdb_protocol", "https")
@@ -57,24 +58,18 @@ func main() {
 		viper.GetString("puppetdb_host"),
 		viper.GetString("puppetdb_protocol"),
 		viper.GetString("puppetdb_nodes_uri"),
-		viper.GetBool("puppetdb_ignore_cert_errors"))
+		viper.GetBool("puppetdb_ignore_cert_errors"),
+		viper.GetStringSlice("include_filters"))
 
 	if err != nil {
 		log.Fatal("Unable to retrieve node list: " + err.Error())
 	}
 
-	r_aws, err := regexp.Compile(`^i-\w+$`)
-	if err != nil {
-		log.Fatalf("Unable to compile AWS regex: " + err.Error())
-	}
-
 	for _, certname := range list {
 		result := false
-		matches_pattern := false
 
 		for _, acct := range conf.Accounts {
-			if acct.Type() == "aws" && r_aws.MatchString(certname) == true {
-				matches_pattern = true
+			if acct.Type() == "aws" {
 				result = acct.Check(certname)
 				if result {
 					break
@@ -82,11 +77,11 @@ func main() {
 			}
 		}
 
-		if matches_pattern && !result {
-			log.Println("Matched a pattern but did not find the instance in any known account. " + certname)
+		if !result {
+			log.Println("Did not find the instance: " + certname)
 			autosignr.CleanNode(viper.GetStringSlice("clean_commands"), certname)
-		} else if !result && !matches_pattern {
-			log.Println("Didn't find the instance and it doesn't match any patterns: " + certname)
+		} else {
+			log.Println("Found the instance: " + certname)
 		}
 	}
 }
