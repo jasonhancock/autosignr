@@ -117,7 +117,7 @@ Each account must have a `name` specified. In addition, each type of account may
 ---
 # autocleanr
 
-Monitor the PuppetDB for inactive nodes (report_timestamp < X hours) then use the cloud provider's API to verify the certname no longer exists.  Then runs custome commands to deactivate and clean the cert name.
+Monitor the PuppetDB for inactive nodes (report_timestamp < X hours) then use the cloud provider's API to verify the certname no longer exists.  Then runs custom commands to deactivate and clean the cert name.
 
 ### Run as a CronJob
 Example

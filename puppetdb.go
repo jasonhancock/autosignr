@@ -24,11 +24,11 @@ func FindInactiveNodes(hours int, host string, protocol string, uri string, igno
 
 	url := fmt.Sprintf("%s://%s%s", protocol, host, uri)
 
-	data := fmt.Sprintf("{ \"query\": \"nodes[certname]{ report_timestamp < \\\"%s\\\"", t)
-	for _, val := range includeFilters {
-		data = data + " " + val
-	}
-	data = data + " }\"}"
+	data := fmt.Sprintf(
+		"{ \"query\": \"nodes[certname]{ report_timestamp < \\\"%s\\\" %s }\"}",
+		t,
+		strings.Join(includeFilters, " "),
+	)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: ignoreCertErrors},
