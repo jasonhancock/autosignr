@@ -113,3 +113,70 @@ Each account must have a `name` specified. In addition, each type of account may
 | secret    | string           | AWS Secret Key |
 | regions   | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
 | attribute | string           | Optional. Defaults to `instance-id`. The name of the attribute to compare the certname against. Useful for using a tag to compare against instead of the instance id...set to `tag:Name` to compare against the `Name` tag |      
+
+---
+# autocleanr
+
+Monitor the PuppetDB for inactive nodes (report_timestamp < X hours) then use the cloud provider's API to verify the certname no longer exists.  Then runs custom commands to deactivate and clean the cert name.
+
+### Run as a CronJob
+Example
+
+```
+15 */4 * * * /usr/sbin/autocleanr > /dev/null 2>&1
+```
+
+### Configuration Options
+
+The configuration file lives at ` /etc/autosignr/autocleanr.yaml`.
+
+| Name             | Type                        | Description |
+| ---------------  | --------------------------- | ----------- |
+| logfile          | string                      | Optional. If specified, log to this file instead of STDOUT |
+| clean\_commands  | array of string             | The command sto execute to deactivate and clean node from puppet. Should contain `%s` that will be replaced with the cert name |
+| include\_filters | array of strings            | Optional.  Additional PQL filters to add to the query to find inactive nodes.  More information in below setting
+| inactive\_hours  | int                         | Number of hours before the node is considered inactive. |
+| puppetdb_host    | string                      | The Hostname for the PuppetDB node |
+| puppetdb\_protocol | string                    | The protocol to connect to puppetdb (http|https) |
+| uppetdb\_ignore\_cert\_errors | boolean        | Set to true if you want to ignore any cert errors.  Should only be set to true in development environments |
+| puppetdb\_nodes\_uri | string                  |  The Root endpoint for the PuppetDB. |
+
+
+Example Configuration:
+
+```
+logfile: /var/log/autosignr/autocleanr.log
+clean_commands:
+  - /opt/puppetlabs/bin/puppet node deactivate %s
+  - /opt/puppetlabs/bin/puppet node clean %s
+include_filters:
+  - and facts{name = \"locations\" and value in [\"aws\"]}
+inactive_hours: 4
+puppetdb_host: puppetdb.example.com
+puppetdb_protocol: https
+puppetdb_ignore_cert_errors: false
+puppetdb_nodes_uri: /api/pdb/query/v4
+```
+
+#### include\_filters
+Optional setting to include additional queries to the API call to PuppetDB.  
+
+This setting currently supports [PQL](https://puppet.com/docs/puppetdb/5.2/api/query/v4/pql.html)  
+
+If include_filters is omitted:
+```
+curl -XPOST -H 'Content-Type:application/json' "http://localhost:8080/pdb/query/v4" \
+-d '{ "query": "nodes[certname]{ report_timestamp < \"2019-01-26T04:02:27Z\" }" }'
+```
+
+If you add the following to the config file  
+```
+include_filters:
+   - and facts{name = \"location\" and value in [\"aws\"]}
+```
+
+Adding the filter above results:
+```
+curl -XPOST -H 'Content-Type:application/json' "http://localhost:8080/pdb/query/v4" \
+-d '{ "query": "nodes[certname]{ report_timestamp < \"2019-01-28T04:02:27Z\" and facts{name = \"role\" and value in [\"nomad-client\"]} }" }'
+```

@@ -3,38 +3,42 @@ package autosignr
 import (
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
+// PuppetDBNode - Returning from the API call to puppetDB
 type PuppetDBNode struct {
-	Certname string
+	Certname string `json:"certname"`
 }
 
-// Queries PuppetDB and returns the list of nodes found to be inactive, where
+// FindInactiveNodes Queries PuppetDB and returns the list of nodes found to be inactive, where
 // inactive is the last report timestamp is greater than $hours old
-func FindInactiveNodes(hours int, host string, protocol string, uri string, ignore_cert_errors bool) ([]string, error) {
-	var list []string
-
+func FindInactiveNodes(hours int, host string, protocol string, uri string, ignoreCertErrors bool, includeFilters []string) ([]string, error) {
 	t := time.Now().Add(time.Hour * time.Duration(hours*-1)).Format(time.RFC3339)
 
-	url := fmt.Sprintf("%s://%s%s?query=[\"<\",\"report_timestamp\",\"%s\"]",
-		protocol,
-		host,
-		uri,
-		t)
+	url := fmt.Sprintf("%s://%s%s", protocol, host, uri)
+
+	data := fmt.Sprintf(
+		"{ \"query\": \"nodes[certname]{ report_timestamp < \\\"%s\\\" %s }\"}",
+		t,
+		strings.Join(includeFilters, " "),
+	)
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: ignore_cert_errors},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: ignoreCertErrors},
 	}
 	client := &http.Client{Transport: tr}
 
-	resp, err := client.Get(url)
+	var list []string
+	resp, err := client.Post(url, "application/json", strings.NewReader(data))
 	if err != nil {
-		fmt.Printf("Error : %s", err)
+		return list, errors.Wrap(err, "Post Error: ")
 	}
 	defer resp.Body.Close()
 
@@ -45,9 +49,8 @@ func FindInactiveNodes(hours int, host string, protocol string, uri string, igno
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	var l []PuppetDBNode
-
 	if err := json.Unmarshal(body, &l); err != nil {
-		return list, err
+		return list, errors.Wrap(err, "Unmarshal Error: ")
 	}
 
 	for _, val := range l {

@@ -6,4 +6,4 @@ inactive_hours: 2
 puppetdb_host: puppetdb.example.com
 puppetdb_protocol: https
 puppetdb_ignore_cert_errors: false
-puppetdb_nodes_uri: /api/pdb/query/v4/nodes
+puppetdb_nodes_uri: /api/pdb/query/v4
