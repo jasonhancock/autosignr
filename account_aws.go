@@ -73,7 +73,7 @@ func (a *AccountAWS) Check(instanceId string) bool {
 			"instance": instanceId,
 			"region":   region,
 			"account":  a.Name,
-			"found":    false,
+			"found":    found,
 		}).Debug("check-result")
 
 		if found {
