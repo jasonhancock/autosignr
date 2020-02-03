@@ -1,13 +1,14 @@
 FROM centos:7
+ARG goversion
 
 RUN yum -y install \
+  gcc \
   git \
   make \
   rpm-build \
   rsync \
   wget
 
-ENV goversion 1.11.5
 ENV gofile go${goversion}.linux-amd64.tar.gz
 ENV gourl https://storage.googleapis.com/golang/${gofile}
 

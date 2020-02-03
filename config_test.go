@@ -3,7 +3,7 @@ package autosignr
 import (
 	"testing"
 
-	"github.com/cheekybits/is"
+	"github.com/stretchr/testify/require"
 )
 
 var data1 = `
@@ -36,28 +36,26 @@ preshared_keys:
 `
 
 func TestConfigParsing(t *testing.T) {
-	is := is.New(t)
-
 	conf1, err := ParseYaml([]byte(data1))
-	is.NoErr(err)
-	is.False(conf1.CheckPSK)
+	require.NoError(t, err)
+	require.False(t, conf1.CheckPSK)
 
-	is.Equal(1, len(conf1.Accounts))
+	require.Len(t, conf1.Accounts, 1)
 	acct, ok := conf1.Accounts[0].(*AccountAWS)
-	is.OK(ok)
-	is.Equal("abc123", acct.Key)
-	is.Equal("def456", acct.Secret)
-	is.Equal(2, len(acct.Regions))
-	is.Equal("us-west-2", acct.Regions[0])
-	is.Equal("tag:Name", acct.Attribute)
+	require.True(t, ok)
+	require.Equal(t, "abc123", acct.Key)
+	require.Equal(t, "def456", acct.Secret)
+	require.Len(t, acct.Regions, 2)
+	require.Equal(t, "us-west-2", acct.Regions[0])
+	require.Equal(t, "tag:Name", acct.Attribute)
 
 	conf2, err := ParseYaml([]byte(data2))
-	is.NoErr(err)
-	is.True(conf2.CheckPSK)
+	require.NoError(t, err)
+	require.True(t, conf2.CheckPSK)
 
 	_, ok = conf2.PresharedKeys["abc123"]
-	is.OK(ok)
+	require.True(t, ok)
 
 	_, ok = conf2.PresharedKeys["abc1234"]
-	is.OK(!ok)
+	require.False(t, ok)
 }

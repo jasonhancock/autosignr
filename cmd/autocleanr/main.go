@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jasonhancock/autosignr"
+
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 

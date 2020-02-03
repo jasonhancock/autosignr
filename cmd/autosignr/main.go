@@ -4,9 +4,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jasonhancock/autosignr"
+
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var conf autosignr.Config
