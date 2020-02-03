@@ -3,20 +3,16 @@ package autosignr
 import (
 	"testing"
 
-	"github.com/cheekybits/is"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPSKExtraction(t *testing.T) {
-	is := is.New(t)
-
 	psk, err := PuppetPSKFromCSRFile("testdata/cert_csr_psk.pem")
-	is.NoErr(err)
-	is.Equal(psk, "my_preshared_key_jason")
+	require.NoError(t, err)
+	require.Equal(t, "my_preshared_key_jason", psk)
 }
 
 func TestCertnameFromFilename(t *testing.T) {
-	is := is.New(t)
-
 	f := "/path/to/a/filename.example.com.pem"
-	is.Equal("filename.example.com", CertnameFromFilename(f))
+	require.Equal(t, "filename.example.com", CertnameFromFilename(f))
 }
