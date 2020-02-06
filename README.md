@@ -3,15 +3,15 @@
 [![Build Status](https://travis-ci.org/jasonhancock/autosignr.svg?branch=master)](https://travis-ci.org/jasonhancock/autosignr)
 [![Go Report Card](https://goreportcard.com/badge/jasonhancock/autosignr)](https://goreportcard.com/report/jasonhancock/autosignr)
 
-A [Custom Policy Executable](https://docs.puppetlabs.com/puppet/latest/reference/ssl_autosign.html#policy-based-autosigning) or a daemon (depending on your desired mode of operation) that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
+A [Custom Policy Executable](https://docs.puppetlabs.com/puppet/latest/reference/ssl_autosign.html#policy-based-autosigning) or a daemon (depending on your desired mode of operation) that watches for new Puppet CSRs from instances in AWS (or other clouds), validates the instances belong to you via the cloud provider's API, then signs the cert. Currently only supports AWS, Azure, GPC, but looking to add support for Openstack, Cloudstack, and generic REST APIs.
 
 Autosignr can optionally be configured to validate pre-shared-keys embedded within the CSR. See the blurb in the Puppet Client Configuration section below for more details on how to embed a PSK into your CSRs.
 
 **This is a work-in-progress and is far from complete. Use at your own risk**
 
-## Puppet Client Configuration
+## Puppet Client Configuration (optional)
 
-The Puppet client must use the instance ID as the certname in puppet.conf.
+The Puppet client can use the instance ID as the certname in puppet.conf.
 
 ```
 # Configures an AWS instance to use the instance ID as the certname. Use something like this to set it before the puppet client starts for the first time:
@@ -77,6 +77,8 @@ The configuration file lives at `/etc/autosignr/config.yaml`.
 | cmd\_sign       | string                      | The command to execute to sign valid certificates. Should contain `%s` that will be replaced with the cert name |
 | logfile         | string                      | Optional. If specified, log to this file instead of STDOUT |
 | accounts\_aws   | array of AWS account hashes | See AWS Account details below. Accounts are searched in the order specified. |
+| accounts\_azure | array of Azure account hashes | See Azure Account details below.  Accounts are searched in the order specified. |
+| accounts\_gcp   | array of GCP account hashes | See GPC Account details below.  Accounts are searched in the order specified. |
 | preshared\_keys | array of strings            | Optional. Array of valid preshared keys embedded within the certificate's extension fields. See the Puppetlab's documentation on [SSL cert extensions](https://docs.puppetlabs.com/puppet/latest/reference/ssl_attributes_extensions.html) for more details on how to embed a PSK into your CSR's. If PSKs are defined in the configuration, then all CSR's will be required to have valid PSK's to be automatically signed |
 
 Example Configuration:
@@ -113,6 +115,25 @@ Each account must have a `name` specified. In addition, each type of account may
 | secret    | string           | AWS Secret Key |
 | regions   | array of strings | A list of regions to check for each instance. Regions are searched in the order specified |
 | attribute | string           | Optional. Defaults to `instance-id`. The name of the attribute to compare the certname against. Useful for using a tag to compare against instead of the instance id...set to `tag:Name` to compare against the `Name` tag |      
+
+#### Account Type: azure
+
+| Name            | Type             | Description |
+| --------------- | ---------------- | ----------- |
+| client_id       | string           | Azure Client Id |
+| client_secret   | string           | Azure Secret Key |
+| subscription_id | string           | Subscription Id |
+| tenant_id       | string           | Tenant Id |
+| attribute       | string           | Optional.  Defaults comparing the certname with Tags `Name`.  If you want to use another Tag specify the key value here |      
+
+#### Account Type: gcp
+
+| Name            | Type             | Description |
+| --------------- | ---------------- | ----------- |
+| project_id      | string           | project_id |
+| credential_file | string           | The path to the key json |
+
+GCP checks the hostnames on instances with the cert name.  Other attributes not supported at this time.
 
 ---
 # autocleanr

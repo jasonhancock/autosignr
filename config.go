@@ -19,11 +19,13 @@ type Config struct {
 }
 
 type parsedConfig struct {
-	Dir           string       `yaml:"dir"`
-	CmdSign       string       `yaml:"cmd_sign"`
-	LogFile       string       `yaml:"logfile"`
-	AWSAccounts   []AccountAWS `yaml:"accounts_aws"`
-	PresharedKeys []string     `yaml:"preshared_keys"`
+	Dir           string         `yaml:"dir"`
+	CmdSign       string         `yaml:"cmd_sign"`
+	LogFile       string         `yaml:"logfile"`
+	AWSAccounts   []AccountAWS   `yaml:"accounts_aws"`
+	AzureAccounts []AccountAzure `yaml:"accounts_azure"`
+	GCPAccounts   []AccountGCP   `yaml:"accounts_gcp"`
+	PresharedKeys []string       `yaml:"preshared_keys"`
 }
 
 func (c *Config) Init() error {
@@ -41,7 +43,7 @@ func (p *parsedConfig) Config() *Config {
 		Dir:           p.Dir,
 		CmdSign:       p.CmdSign,
 		LogFile:       p.LogFile,
-		Accounts:      make([]Account, 0, len(p.AWSAccounts)),
+		Accounts:      make([]Account, 0, len(p.AWSAccounts) + len(p.AzureAccounts) + len(p.GCPAccounts)),
 		PresharedKeys: make(map[string]struct{}, len(p.PresharedKeys)),
 	}
 
@@ -55,6 +57,14 @@ func (p *parsedConfig) Config() *Config {
 
 	for i := range p.AWSAccounts {
 		c.Accounts = append(c.Accounts, &p.AWSAccounts[i])
+	}
+
+	for i := range p.AzureAccounts {
+		c.Accounts = append(c.Accounts, &p.AzureAccounts[i])
+	}
+
+	for i := range p.GCPAccounts {
+		c.Accounts = append(c.Accounts, &p.GCPAccounts[i])
 	}
 
 	return c
