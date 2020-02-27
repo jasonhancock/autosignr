@@ -53,7 +53,15 @@ func (a AccountGCP) Check(instanceId string) bool {
 		req := a.vmClient.Instances.List(a.ProjectID, zone)
 		_ = req.Pages(ctx, func(page *gcpcompute.InstanceList) error {
 			for _, instance := range page.Items {
+				// When creating instance you are able to set the hostname
 				if instance.Hostname == instanceId {
+					found = true
+					return nil
+				}
+				// When creating a instancegroup you can't set the hostname
+				// So look for the internal name
+				internalName := fmt.Sprintf("%s.%s.c.%s.internal", instance.Name, zone, a.ProjectID)
+				if internalName == instanceId {
 					found = true
 					return nil
 				}
