@@ -5,6 +5,7 @@ import (
 	"gopkg.in/fsnotify.v1"
 )
 
+// WatchDir monitors a directory for new files
 func WatchDir(conf *Config) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

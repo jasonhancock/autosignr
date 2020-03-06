@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Runs one or more commands to take when de-provisioning a node for Puppet
+// CleanNode runs one or more commands to take when de-provisioning a node for Puppet
 func CleanNode(commands []string, certname string) {
 
 	for _, cmd := range commands {

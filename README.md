@@ -125,6 +125,7 @@ Each account must have a `name` specified. In addition, each type of account may
 | subscription_id | string           | Subscription Id |
 | tenant_id       | string           | Tenant Id |
 | attribute       | string           | Optional.  Defaults comparing the certname with Tags `Name`.  If you want to use another Tag specify the key value here |      
+| dns_zone        | string           | Optional.  This will compare the certname with the computer name plus the Tag `dns_zone`.  This option is useful for Scale Sets | 
 
 #### Account Type: gcp
 

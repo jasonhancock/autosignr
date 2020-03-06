@@ -7,8 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfigFile is the default config file location
 const DefaultConfigFile string = "/etc/autosignr/config.yaml"
 
+// Config encapsulates the config information
 type Config struct {
 	Dir           string
 	CmdSign       string
@@ -28,6 +30,7 @@ type parsedConfig struct {
 	PresharedKeys []string       `yaml:"preshared_keys"`
 }
 
+// Init sets up initial config
 func (c *Config) Init() error {
 	for i := range c.Accounts {
 		err := c.Accounts[i].Init()
@@ -38,12 +41,13 @@ func (c *Config) Init() error {
 	return nil
 }
 
+// Config parses config
 func (p *parsedConfig) Config() *Config {
 	c := &Config{
 		Dir:           p.Dir,
 		CmdSign:       p.CmdSign,
 		LogFile:       p.LogFile,
-		Accounts:      make([]Account, 0, len(p.AWSAccounts) + len(p.AzureAccounts) + len(p.GCPAccounts)),
+		Accounts:      make([]Account, 0, len(p.AWSAccounts)+len(p.AzureAccounts)+len(p.GCPAccounts)),
 		PresharedKeys: make(map[string]struct{}, len(p.PresharedKeys)),
 	}
 
@@ -70,6 +74,7 @@ func (p *parsedConfig) Config() *Config {
 	return c
 }
 
+// LoadConfigFile read config file and parse
 func LoadConfigFile(filename string) (*Config, error) {
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -79,6 +84,7 @@ func LoadConfigFile(filename string) (*Config, error) {
 	return ParseYaml(yamlFile)
 }
 
+// ParseYaml parse the yaml data
 func ParseYaml(yamldata []byte) (*Config, error) {
 	var f parsedConfig
 

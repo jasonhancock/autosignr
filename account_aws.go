@@ -3,13 +3,14 @@ package autosignr
 import (
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	log "github.com/sirupsen/logrus"
 )
 
+// AccountAWS encapsulates the account information for AWS
 type AccountAWS struct {
 	Name      string   `yaml:"name"`
 	Key       string   `yaml:"key"`
@@ -19,6 +20,7 @@ type AccountAWS struct {
 	awsCreds  *credentials.Credentials
 }
 
+// Init setup the account
 func (a *AccountAWS) Init() error {
 	if a.Attribute == "" {
 		a.Attribute = "instance-id"
@@ -31,15 +33,17 @@ func (a *AccountAWS) Init() error {
 	return nil
 }
 
+// Type returns the type of account
 func (a *AccountAWS) Type() string {
 	return "aws"
 }
 
-func (a *AccountAWS) Check(instanceId string) bool {
+// Check look for the instanceID in the account
+func (a *AccountAWS) Check(instanceID string) bool {
 	for _, region := range a.Regions {
 
 		log.WithFields(log.Fields{
-			"instance": instanceId,
+			"instance": instanceID,
 			"region":   region,
 			"account":  a.Name,
 		}).Debug("checking")
@@ -54,7 +58,7 @@ func (a *AccountAWS) Check(instanceId string) bool {
 				{
 					Name: aws.String(a.Attribute),
 					Values: []*string{
-						aws.String(instanceId),
+						aws.String(instanceID),
 					},
 				},
 			},
@@ -70,7 +74,7 @@ func (a *AccountAWS) Check(instanceId string) bool {
 		found := len(resp.Reservations) > 0
 
 		log.WithFields(log.Fields{
-			"instance": instanceId,
+			"instance": instanceID,
 			"region":   region,
 			"account":  a.Name,
 			"found":    found,
@@ -84,6 +88,7 @@ func (a *AccountAWS) Check(instanceId string) bool {
 	return false
 }
 
+// String returns the account info
 func (a *AccountAWS) String() string {
 	return fmt.Sprintf("aws account: %s", a.Name)
 }
