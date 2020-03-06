@@ -1,7 +1,8 @@
 package autosignr
 
+// Account defines the interface for checking cloud accounts
 type Account interface {
 	Init() error
-	Check(instanceId string) bool
+	Check(instanceID string) bool
 	Type() string
 }

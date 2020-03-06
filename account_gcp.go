@@ -13,6 +13,7 @@ import (
 
 var zoneRegexp = regexp.MustCompile(".*/zones/(.*)")
 
+// AccountGCP encapsulates the account information for Google
 type AccountGCP struct {
 	Name            string `yaml:"name"`
 	ProjectID       string `yaml:"project_id"`
@@ -21,6 +22,7 @@ type AccountGCP struct {
 	vmClient *gcpcompute.Service
 }
 
+// Init setup the account
 func (a *AccountGCP) Init() error {
 	if a.ProjectID == "" {
 		return errors.New("GCP project_id is missing")
@@ -32,13 +34,15 @@ func (a *AccountGCP) Init() error {
 	return err
 }
 
+// Type returns the type of account
 func (a AccountGCP) Type() string {
 	return "gcp"
 }
 
-func (a AccountGCP) Check(instanceId string) bool {
+// Check look for the instanceID in the account
+func (a AccountGCP) Check(instanceID string) bool {
 	log.WithFields(log.Fields{
-		"instance":   instanceId,
+		"instance":   instanceID,
 		"project_id": a.ProjectID,
 	}).Debug("checking")
 
@@ -54,14 +58,14 @@ func (a AccountGCP) Check(instanceId string) bool {
 		_ = req.Pages(ctx, func(page *gcpcompute.InstanceList) error {
 			for _, instance := range page.Items {
 				// When creating instance you are able to set the hostname
-				if instance.Hostname == instanceId {
+				if instance.Hostname == instanceID {
 					found = true
 					return nil
 				}
 				// When creating a instancegroup you can't set the hostname
 				// So look for the internal name
 				internalName := fmt.Sprintf("%s.%s.c.%s.internal", instance.Name, zone, a.ProjectID)
-				if internalName == instanceId {
+				if internalName == instanceID {
 					found = true
 					return nil
 				}
@@ -70,26 +74,28 @@ func (a AccountGCP) Check(instanceId string) bool {
 		})
 		if found {
 			log.WithFields(log.Fields{
-				"instance": instanceId,
-				"account":   a.Name,
-				"found":     true,
+				"instance": instanceID,
+				"account":  a.Name,
+				"found":    true,
 			}).Debug("check-result")
 			return true
 		}
 	}
 
 	log.WithFields(log.Fields{
-		"instance": instanceId,
+		"instance": instanceID,
 		"account":  a.Name,
 		"found":    false,
 	}).Debug("check-result")
 	return false
 }
 
+// String returns the account info
 func (a AccountGCP) String() string {
 	return fmt.Sprintf("gcp account: %s", a.Name)
 }
 
+// getActiveZones looks for zones with instances
 func (a AccountGCP) getActiveZones() ([]string, error) {
 	ctx := context.Background()
 
@@ -114,6 +120,7 @@ func (a AccountGCP) getActiveZones() ([]string, error) {
 	return zones, nil
 }
 
+// zoneName will parse out the zone name from a string
 func zoneName(str string) string {
 	match := zoneRegexp.FindStringSubmatch(str)
 	if len(match) > 1 {

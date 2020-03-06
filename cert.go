@@ -32,6 +32,7 @@ func CertnameFromFilename(file string) string {
 	return strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 }
 
+// CheckCert checks if the cert is valid
 func CheckCert(conf *Config, file string) (bool, error) {
 	name := CertnameFromFilename(file)
 	log.Debugf("CheckCert %s", name)
@@ -53,6 +54,7 @@ func CheckCert(conf *Config, file string) (bool, error) {
 	return result, nil
 }
 
+// ValidateCert validates the cert
 func ValidateCert(conf *Config, data []byte, certname string) (bool, error) {
 	log.Debugf("ValidateCert %s", certname)
 	if conf.CheckPSK {
@@ -63,14 +65,13 @@ func ValidateCert(conf *Config, data []byte, certname string) (bool, error) {
 				"err":      err,
 			}).Warning("psk-extract-error")
 			return false, err
-		} else {
-			if _, ok := conf.PresharedKeys[psk]; !ok {
-				log.WithFields(log.Fields{
-					"certname": certname,
-					"psk":      psk,
-				}).Warning("invalid-psk")
-				return false, errors.New("Invalid PSK")
-			}
+		}
+		if _, ok := conf.PresharedKeys[psk]; !ok {
+			log.WithFields(log.Fields{
+				"certname": certname,
+				"psk":      psk,
+			}).Warning("invalid-psk")
+			return false, errors.New("Invalid PSK")
 		}
 	}
 
@@ -85,6 +86,7 @@ func ValidateCert(conf *Config, data []byte, certname string) (bool, error) {
 	return result, nil
 }
 
+// SignCert will run the puppet command to sign the cert
 func SignCert(conf *Config, certname string) {
 	cmd := fmt.Sprintf(conf.CmdSign, certname)
 	pieces := strings.Split(cmd, " ")
@@ -103,6 +105,7 @@ func SignCert(conf *Config, certname string) {
 	}).Info("signing-success")
 }
 
+// ExistingCerts checks existing certs in directory
 func ExistingCerts(conf *Config) error {
 	matches, err := filepath.Glob(fmt.Sprintf("%s/*.pem", conf.Dir))
 	if err != nil {
@@ -123,6 +126,7 @@ func ExistingCerts(conf *Config) error {
 	return nil
 }
 
+// PuppetPSKFromCSRFile return the CSR file data
 func PuppetPSKFromCSRFile(file string) (string, error) {
 	var f string
 
@@ -134,6 +138,7 @@ func PuppetPSKFromCSRFile(file string) (string, error) {
 	return PuppetPSKFromCSR(data)
 }
 
+// PuppetPSKFromCSR decodes and parses the cert data
 func PuppetPSKFromCSR(data []byte) (string, error) {
 	block, _ := pem.Decode(data)
 	if block == nil {
