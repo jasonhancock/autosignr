@@ -70,11 +70,9 @@ func main() {
 		result := false
 
 		for _, acct := range conf.Accounts {
-			if acct.Type() == "aws" {
-				result = acct.Check(certname)
-				if result {
-					break
-				}
+			result = acct.Check(certname)
+			if result {
+				break
 			}
 		}
 
