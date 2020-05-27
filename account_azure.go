@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -128,7 +129,7 @@ func (a AccountAzure) checkVM(instanceID string) (bool, error) {
 
 			// Check for the dns_zone tag
 			if val, ok := instance.Tags[a.Domain]; ok {
-				if fmt.Sprintf("%s.%s", *instance.OsProfile.ComputerName, *val) == instanceID {
+				if strings.ToLower(fmt.Sprintf("%s.%s", *instance.OsProfile.ComputerName, *val)) == instanceID {
 					return true, nil
 				}
 			}
@@ -180,7 +181,7 @@ func (a AccountAzure) checkScaleSetVM(instanceID string) (bool, error) {
 			for _, instance := range subList.Values() {
 				// Check for the dns_zone tag
 				if val, ok := instance.Tags[a.Domain]; ok {
-					if fmt.Sprintf("%s.%s", *instance.OsProfile.ComputerName, *val) == instanceID {
+					if strings.ToLower(fmt.Sprintf("%s.%s", *instance.OsProfile.ComputerName, *val)) == instanceID {
 						return true, nil
 					}
 				}
